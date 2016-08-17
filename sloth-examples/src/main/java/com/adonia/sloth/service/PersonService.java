@@ -1,5 +1,6 @@
 package com.adonia.sloth.service;
 
+import com.adonia.sloth.annotation.SlothService;
 import com.adonia.sloth.model.Person;
 import com.adonia.sloth.model.ServiceException;
 import com.adonia.sloth.service.zk.ZKServiceRegistry;
@@ -38,6 +39,7 @@ public class PersonService {
      * @return
      * @throws ServiceException
      */
+    @SlothService(serviceName = "addPerson")
     @RequestMapping(value = "/add", method = RequestMethod.POST)
     public String addPerson(@RequestBody Person person) throws ServiceException {
         if(persons.contains(person)) {
@@ -57,6 +59,7 @@ public class PersonService {
      * </pre>
      * @return
      */
+    @SlothService
     @RequestMapping
     public List<Person> getPerson() {
         return persons;
