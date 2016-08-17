@@ -3,6 +3,7 @@ package com.adonia.sloth.model;
 import com.adonia.sloth.utils.IServiceConstant;
 import org.apache.commons.lang.StringUtils;
 import org.apache.commons.lang.builder.ReflectionToStringBuilder;
+import org.springframework.web.util.UriComponentsBuilder;
 
 /**
  * 服务实例
@@ -94,19 +95,24 @@ public class InstanceDetail {
         }
 
         private String buildRequestUri() {
-            StringBuilder sb = new StringBuilder(scheme);
-            sb.append(instanceDetail.getListenAddress());
-            sb.append(instanceDetail.getContext());
+            UriComponentsBuilder builder = UriComponentsBuilder.fromHttpUrl(scheme + instanceDetail.getListenAddress());
+            builder.path(instanceDetail.getContext());
 
-            if(StringUtils.isNotEmpty(instanceDetail.getControllerRequestMapping())) {
-                sb.append(instanceDetail.getControllerRequestMapping());
+            String controllerMapping = instanceDetail.getControllerRequestMapping();
+            if(StringUtils.isNotEmpty(controllerMapping)) {
+                controllerMapping = StringUtils.startsWith(controllerMapping, IServiceConstant.URI_SPLIT_CHAR) ?
+                        controllerMapping : IServiceConstant.URI_SPLIT_CHAR + controllerMapping;
+                builder.path(controllerMapping);
             }
 
-            if(StringUtils.isNotEmpty(instanceDetail.getMethodRequestMapping())) {
-                sb.append(instanceDetail.getMethodRequestMapping());
+            String methodMapping = instanceDetail.getMethodRequestMapping();
+            if(StringUtils.isNotEmpty(methodMapping)) {
+                methodMapping = StringUtils.startsWith(methodMapping, IServiceConstant.URI_SPLIT_CHAR) ?
+                        methodMapping : IServiceConstant.URI_SPLIT_CHAR + methodMapping;
+                builder.path(methodMapping);
             }
 
-            return sb.toString();
+            return builder.build().toUriString();
         }
     }
 

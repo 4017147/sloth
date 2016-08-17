@@ -16,4 +16,8 @@ public interface IServiceConstant {
      * uri分隔符
      */
     String URI_SPLIT_CHAR = "/";
+
+    long SERVICE_NOT_FOUND = 404L;
+
+    long SERVICE_INTERNAL_ERROR = 500L;
 }

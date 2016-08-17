@@ -1,8 +1,7 @@
-package com.adonia.sloth.example;
+package com.adonia.sloth.service;
 
 import com.adonia.sloth.model.InstanceDetail;
 import com.adonia.sloth.model.ServiceException;
-import com.adonia.sloth.service.IServiceFinder;
 import com.adonia.sloth.service.zk.ZKServiceFinder;
 
 /**
