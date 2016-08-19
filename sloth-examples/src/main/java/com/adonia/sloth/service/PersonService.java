@@ -3,7 +3,6 @@ package com.adonia.sloth.service;
 import com.adonia.sloth.annotation.SlothService;
 import com.adonia.sloth.model.Person;
 import com.adonia.sloth.model.ServiceException;
-import com.adonia.sloth.service.zk.ZKServiceRegistry;
 import org.apache.commons.lang.StringUtils;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -143,16 +142,6 @@ public class PersonService {
     }
 
     public static void main(String[] args) {
-        try {
-            IServiceRegistry registry = new ZKServiceRegistry("localhost:2181", "sloth");
-            registry.register("localhost", 8082, "addPerson", "/", "persons", "add");
-            registry.register("localhost", 8082, "getPerson", "/", "persons", "");
-            registry.register("localhost", 8082, "getPersonDetail", "/", "persons", "detail");
-            registry.register("localhost", 8082, "updatePerson", "/", "persons", "");
-            registry.register("localhost", 8082, "deletePerson", "/", "persons", "");
-        } catch (ServiceException e) {
-            e.printStackTrace();
-        }
         SpringApplication.run(PersonService.class, "--server.port=8082");
     }
 

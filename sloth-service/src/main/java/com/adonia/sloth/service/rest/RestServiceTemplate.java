@@ -4,13 +4,14 @@ import com.adonia.sloth.model.InstanceDetail;
 import com.adonia.sloth.model.ServiceException;
 import com.adonia.sloth.service.IServiceFinder;
 import com.adonia.sloth.service.IServiceTemplate;
-import com.adonia.sloth.service.zk.ZKServiceFinder;
 import com.adonia.sloth.utils.IServiceConstant;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang.StringUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.*;
+import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestClientException;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.util.UriComponentsBuilder;
@@ -23,17 +24,18 @@ import java.util.Map;
  * @author loulou.liu
  * @create 2016/8/16
  */
+@Service
 public class RestServiceTemplate implements IServiceTemplate {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(RestServiceTemplate.class);
 
     private RestTemplate template;
 
+    @Autowired
     private IServiceFinder serviceFinder;
 
-    public RestServiceTemplate(String zkServerUri, String servicePath) throws ServiceException {
+    public RestServiceTemplate() throws ServiceException {
         this.template = new RestTemplate();
-        this.serviceFinder = new ZKServiceFinder(zkServerUri, servicePath);
     }
 
     /**

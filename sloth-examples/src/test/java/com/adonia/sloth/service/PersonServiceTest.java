@@ -33,4 +33,14 @@ public class PersonServiceTest {
             e.printStackTrace();
         }
     }
+
+    @Test
+    public void testGetPersons() {
+        try {
+            String persons = serviceTemplate.get("getPerson", String.class);
+            System.out.println(persons);
+        } catch (ServiceException e) {
+            e.printStackTrace();
+        }
+    }
 }

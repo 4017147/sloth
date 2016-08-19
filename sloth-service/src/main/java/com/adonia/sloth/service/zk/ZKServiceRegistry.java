@@ -4,8 +4,6 @@ import com.adonia.sloth.model.InstanceDetail;
 import com.adonia.sloth.model.ServiceException;
 import com.adonia.sloth.service.IServiceRegistry;
 import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.curator.x.discovery.ServiceDiscovery;
 import org.apache.curator.x.discovery.ServiceDiscoveryBuilder;
 import org.apache.curator.x.discovery.ServiceInstance;
@@ -25,23 +23,15 @@ public class ZKServiceRegistry implements IServiceRegistry, Closeable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ZKServiceRegistry.class);
 
-    private final String zkServerUri;
-
     private final String servicePath;
-
-    private CuratorFramework client;
 
     private ServiceDiscovery<InstanceDetail> discovery;
 
-    public ZKServiceRegistry(String zkServerUri, String servicePath) throws ServiceException {
-        this.zkServerUri = zkServerUri;
+    public ZKServiceRegistry(CuratorFramework zkClient, String servicePath) throws ServiceException {
         this.servicePath = servicePath;
 
-        client = CuratorFrameworkFactory.newClient(zkServerUri, new ExponentialBackoffRetry(1000, 3));
-        client.start();
-
         discovery = ServiceDiscoveryBuilder.builder(InstanceDetail.class)
-                .client(client)
+                .client(zkClient)
                 .basePath(servicePath)
                 .build();
         try {
@@ -59,9 +49,6 @@ public class ZKServiceRegistry implements IServiceRegistry, Closeable {
             discovery.close();
         }
 
-        if(null != client) {
-            client.close();
-        }
     }
 
     /**
@@ -117,11 +104,11 @@ public class ZKServiceRegistry implements IServiceRegistry, Closeable {
             return;
         }
 
-        LOGGER.info("Register service instance {} to zookeeper {} under node {}.", serviceInstance, zkServerUri, servicePath);
+        LOGGER.info("Register service instance {} to service path {}.", serviceInstance, servicePath);
         try {
             this.discovery.registerService(serviceInstance);
         } catch (Exception e) {
-            LOGGER.error("Failed to registry service instance {} to zookeeper {}.", serviceInstance, zkServerUri, e);
+            LOGGER.error("Failed to registry service instance {}.", serviceInstance, e);
             throw new ServiceException(e);
         }
     }

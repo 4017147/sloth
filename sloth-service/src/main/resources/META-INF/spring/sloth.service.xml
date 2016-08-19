@@ -1,20 +1,39 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+                           http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
+
+    <context:component-scan base-package="com.adonia.sloth.service.rest" />
+
+    <!-- 服务注册中心 -->
     <bean id="serviceRegistry" name="serviceRegistry" class="com.adonia.sloth.service.zk.ZKServiceRegistry">
-        <constructor-arg name="zkServerUri" value="${sloth.registry.zkServerUri:localhost:2181}" />
         <constructor-arg name="servicePath" value="${sloth.registry.servicePath:/sloth/service}" />
+        <constructor-arg name="zkClient" ref="curatorClient" />
     </bean>
 
+    <!-- 服务查询 -->
+    <bean id="serviceFinder" name="serviceFinder" class="com.adonia.sloth.service.zk.ZKServiceFinder">
+        <constructor-arg name="servicePath" value="${sloth.registry.servicePath:/sloth/service}" />
+        <constructor-arg name="zkClient" ref="curatorClient" />
+    </bean>
+
+    <!-- 服务自动发现 -->
     <bean id="slothServiceDiscovery" name="slothServiceDiscovery" class="com.adonia.sloth.service.SlothServiceDiscovery">
         <constructor-arg name="context" value="${sloth.discovery.context}" />
         <constructor-arg name="port" value="${sloth.discovery.port}" />
     </bean>
 
-    <bean id="serviceTemplate" name="serviceTemplate" class="com.adonia.sloth.service.rest.RestServiceTemplate">
-        <constructor-arg name="servicePath" value="${sloth.registry.servicePath:/sloth/service}" />
-        <constructor-arg name="zkServerUri" value="${sloth.registry.zkServerUri:localhost:2181}" />
+    <!-- zookeeper curator client -->
+    <bean id="curatorRetryPolicy" class="org.apache.curator.retry.ExponentialBackoffRetry">
+        <constructor-arg name="baseSleepTimeMs" value="1000" />
+        <constructor-arg name="maxRetries" value="3" />
+    </bean>
+
+    <bean id="curatorClient" class="org.apache.curator.framework.CuratorFrameworkFactory" factory-method="newClient" init-method="start">
+        <constructor-arg name="connectString" value="${sloth.registry.zkServerUri:localhost:2181}" />
+        <constructor-arg name="retryPolicy" ref="curatorRetryPolicy" />
     </bean>
 </beans>

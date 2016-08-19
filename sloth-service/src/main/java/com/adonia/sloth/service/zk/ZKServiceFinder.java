@@ -4,11 +4,8 @@ import com.adonia.sloth.model.InstanceDetail;
 import com.adonia.sloth.model.ServiceException;
 import com.adonia.sloth.service.IServiceFinder;
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.IterableUtils;
 import org.apache.commons.collections4.IteratorUtils;
 import org.apache.curator.framework.CuratorFramework;
-import org.apache.curator.framework.CuratorFrameworkFactory;
-import org.apache.curator.retry.ExponentialBackoffRetry;
 import org.apache.curator.x.discovery.ServiceDiscovery;
 import org.apache.curator.x.discovery.ServiceDiscoveryBuilder;
 import org.apache.curator.x.discovery.ServiceInstance;
@@ -31,24 +28,13 @@ public class ZKServiceFinder implements IServiceFinder, Closeable {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ZKServiceFinder.class);
 
-    private final String zkServerUri;
-
-    private final String servicePath;
-
-    private final CuratorFramework client;
-
     private final ServiceDiscovery<InstanceDetail> discovery;
 
-    public ZKServiceFinder(String zkServerUri, String servicePath) throws ServiceException{
-        this.zkServerUri = zkServerUri;
-        this.servicePath = servicePath;
-
-        this.client = CuratorFrameworkFactory.newClient(zkServerUri, new ExponentialBackoffRetry(1000, 3));
-        client.start();
+    public ZKServiceFinder(CuratorFramework zkClient, String servicePath) throws ServiceException{
 
         this.discovery = ServiceDiscoveryBuilder.builder(InstanceDetail.class)
                 .basePath(servicePath)
-                .client(client)
+                .client(zkClient)
                 .build();
         try {
             discovery.start();
@@ -95,10 +81,6 @@ public class ZKServiceFinder implements IServiceFinder, Closeable {
     public void close() throws IOException {
         if(null != discovery) {
             discovery.close();
-        }
-
-        if(null != client) {
-            client.close();
         }
     }
 }
