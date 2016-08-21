@@ -2,6 +2,7 @@ package com.adonia.sloth.service;
 
 import com.adonia.sloth.model.Person;
 import com.adonia.sloth.model.ServiceException;
+import com.adonia.sloth.service.rest.SlothServiceTemplate;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.test.context.ContextConfiguration;
@@ -22,6 +23,9 @@ public class PersonServiceTest {
     @Resource
     private IServiceTemplate serviceTemplate;
 
+    @Resource
+    private SlothServiceTemplate slothService;
+
     @Test
     public void testAddPerson() {
         Person person = new Person("leo", 25, "NJ, JS");
@@ -38,6 +42,17 @@ public class PersonServiceTest {
     public void testGetPersons() {
         try {
             String persons = serviceTemplate.get("getPerson", String.class);
+            System.out.println(persons);
+        } catch (ServiceException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
+    public void testGetPersons2() {
+        try {
+            String persons = slothService.request(SlothServiceTemplate.SlothRequest.withServiceName("getPerson"))
+                    .get(String.class);
             System.out.println(persons);
         } catch (ServiceException e) {
             e.printStackTrace();

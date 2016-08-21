@@ -89,7 +89,7 @@ public class RestServiceTemplate implements IServiceTemplate {
         String requestUri = instance.getRequestUrl();
         requestUri = fetchRequestUri(requestUri, params, pathVariable);
 
-        LOGGER.info("Request method: GET, service name: {}, request uri: {}", serviceName, requestUri);
+        LOGGER.info("SlothRequest method: GET, service name: {}, request uri: {}", serviceName, requestUri);
         ResponseEntity<T> response;
         try {
             response = this.template.exchange(requestUri, HttpMethod.GET, entry, responseType);
@@ -172,7 +172,7 @@ public class RestServiceTemplate implements IServiceTemplate {
         String requestUri = instance.getRequestUrl();
         requestUri = fetchRequestUri(requestUri, params, pathVariable);
 
-        LOGGER.info("Request method: POST, service name: {}, request uri: {}", serviceName, requestUri);
+        LOGGER.info("SlothRequest method: POST, service name: {}, request uri: {}", serviceName, requestUri);
         ResponseEntity<T> response;
         try {
             response = this.template.exchange(requestUri, HttpMethod.POST, entry, responseType);
