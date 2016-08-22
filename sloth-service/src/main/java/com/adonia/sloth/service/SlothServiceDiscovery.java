@@ -24,6 +24,15 @@ import java.util.Map;
 /**
  * 服务自动发现
  *
+ * <code>
+ *     @SlothService(namespace = "namespace", version = "version", excludes = {"methodName1"}, excludePattern = "method*")
+ *     Public Class ClazzName {
+ *         @SlothService(serviceName = "serviceName")
+ *         public <T> T methodName() {
+ *         }
+ *     }
+ * </code>
+ *
  * @author loulou.liu
  * @create 2016/8/17
  */
@@ -41,6 +50,9 @@ public class SlothServiceDiscovery implements ApplicationContextAware, Initializ
     @Autowired
     private IServiceRegistry serviceRegistry;
 
+    @Autowired
+    private ZKServiceRegistry2 serviceRegistry2;
+
     @Override
     public void afterPropertiesSet() throws Exception {
 
@@ -49,6 +61,12 @@ public class SlothServiceDiscovery implements ApplicationContextAware, Initializ
             // 获取Controller上的请求映射路径
             RequestMapping controllerMapping = AnnotationUtils.findAnnotation(bean.getClass(), RequestMapping.class);
             final String controllerRequestMapping = (null == controllerMapping) ? StringUtils.EMPTY : controllerMapping.value()[0];
+
+
+            // 获取Controller上的@SlothService标志
+            SlothService controllerSlothService = AnnotationUtils.findAnnotation(bean.getClass(), SlothService.class);
+            String namespace = (null == controllerSlothService) ? null : controllerSlothService.namespace();
+            String version = (null == controllerSlothService) ? null : controllerSlothService.version();
 
             // 获取每个方法上的请求映射路径
             Method[] methods = bean.getClass().getMethods();
@@ -72,6 +90,7 @@ public class SlothServiceDiscovery implements ApplicationContextAware, Initializ
                 final String methodRequestMapping = getMethodRequestMapping(methodMapping);
 
                 serviceRegistry.register(getLocalIp(), port, serviceName, context, controllerRequestMapping, methodRequestMapping);
+                // serviceRegistry2.register(getLocalIp(), port, namespace, version, serviceName, controllerRequestMapping, methodRequestMapping);
             }
         }
     }

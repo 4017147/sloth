@@ -28,4 +28,12 @@ public @interface SlothService {
      * @return
      */
     String version() default "";
+
+    /**
+     * 扫描被@SlothService标记的Controller,将其下除了excludes指定的方法注册为服务
+     * @return
+     */
+    String[] excludes();
+
+    String excludePattern() default "";
 }
