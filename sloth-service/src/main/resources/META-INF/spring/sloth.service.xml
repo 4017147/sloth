@@ -21,15 +21,6 @@
         <constructor-arg name="zkClient" ref="curatorClient" />
     </bean>
 
-    <!-- 服务自动发现 -->
-    <bean id="slothServiceDiscovery" name="slothServiceDiscovery" class="com.adonia.sloth.service.SlothServiceDiscovery">
-        <constructor-arg name="context" value="${sloth.discovery.context}" />
-        <constructor-arg name="port" value="${sloth.discovery.port}" />
-        <property name="servicePath" value="${sloth.registry.servicePath:/sloth/service}" />
-        <property name="namespace" value="${sloth.registry.namespace:#{null}}" />
-        <property name="version" value="${sloth.registry.version:#{null}}" />
-    </bean>
-
     <!-- zookeeper curator client -->
     <bean id="curatorRetryPolicy" class="org.apache.curator.retry.ExponentialBackoffRetry">
         <constructor-arg name="baseSleepTimeMs" value="1000" />

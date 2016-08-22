@@ -7,10 +7,12 @@ import org.apache.commons.lang.StringUtils;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 import org.springframework.core.annotation.AnnotationUtils;
 import org.springframework.stereotype.Controller;
+import org.springframework.stereotype.Service;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -25,39 +27,22 @@ import java.util.Map;
  * @author loulou.liu
  * @create 2016/8/17
  */
+@Service
 public class SlothServiceDiscovery implements ApplicationContextAware, InitializingBean {
 
+    @Value("${sloth.service.context:/}")
     private String context;
 
+    @Value("${sloth.service.port:8080}")
     private int port;
-
-    private String namespace;
-
-    private String version;
-
-    private String servicePath;
-
-    public SlothServiceDiscovery(String context, int port) {
-        this.context = context;
-        this.port = port;
-    }
 
     private final Map<String, Object> beans = new HashMap<>();
 
     @Autowired
     private IServiceRegistry serviceRegistry;
 
-    @Resource
-    private ZKServiceRegistry2 serviceRegistry2;
-
     @Override
     public void afterPropertiesSet() throws Exception {
-
-        serviceRegistry2.withServicePath(this.servicePath)
-                .andContext(this.context)
-                .andNamespace(this.namespace)
-                .andVersion(this.version)
-                .start();
 
         for(Object bean: beans.values()) {
 
@@ -86,8 +71,7 @@ public class SlothServiceDiscovery implements ApplicationContextAware, Initializ
 
                 final String methodRequestMapping = getMethodRequestMapping(methodMapping);
 
-//                serviceRegistry.register(getLocalIp(), port, serviceName, context, controllerRequestMapping, methodRequestMapping);
-                serviceRegistry2.register(getLocalIp(), port, serviceName, controllerRequestMapping, methodRequestMapping);
+                serviceRegistry.register(getLocalIp(), port, serviceName, context, controllerRequestMapping, methodRequestMapping);
             }
         }
     }
@@ -96,18 +80,6 @@ public class SlothServiceDiscovery implements ApplicationContextAware, Initializ
     public void setApplicationContext(ApplicationContext applicationContext) throws BeansException {
         beans.putAll(applicationContext.getBeansWithAnnotation(Controller.class));
         beans.putAll(applicationContext.getBeansWithAnnotation(RestController.class));
-    }
-
-    public void setNamespace(String namespace) {
-        this.namespace = namespace;
-    }
-
-    public void setVersion(String version) {
-        this.version = version;
-    }
-
-    public void setServicePath(String servicePath) {
-        this.servicePath = servicePath;
     }
 
     private String getLocalIp() {

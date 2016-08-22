@@ -10,9 +10,14 @@ import org.apache.curator.x.discovery.ServiceDiscoveryBuilder;
 import org.apache.curator.x.discovery.ServiceInstance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Service;
 
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 import javax.annotation.Resource;
+import java.io.IOException;
 
 /**
  * 使用zookeeper提供服务注册
@@ -20,7 +25,7 @@ import javax.annotation.Resource;
  * @author loulou.liu
  * @create 2016/8/22
  */
-@Component
+@Service
 public class ZKServiceRegistry2 {
 
     private static final Logger LOGGER = LoggerFactory.getLogger(ZKServiceRegistry2.class);
@@ -33,27 +38,26 @@ public class ZKServiceRegistry2 {
     /**
      * 服务命名空间，可为空
      */
+    @Value("${sloth.service.namespace:#{null}}")
     private String namespace;
 
     /**
      * 服务版本号，可为空
      */
+    @Value("${sloth.service.version:#{null}}")
     private String version;
 
     /**
-     * 服务注册跟路径
+     * 服务注册跟路径,默认为<code>/sloth/service</code>
      */
+    @Value("${sloth.service.path:/sloth/service}")
     private String servicePath;
 
     /**
-     * 服务运行实例所在的虚拟路径
+     * 服务运行实例所在的虚拟路径,默认<code>/</code>
      */
+    @Value("${sloth.service.context:/}")
     private String context;
-
-    public ZKServiceRegistry2 withServicePath(final String servicePath) {
-        this.servicePath = servicePath;
-        return this;
-    }
 
     public ZKServiceRegistry2 andNamespace(final String namespace) {
         this.namespace = namespace;
@@ -70,8 +74,8 @@ public class ZKServiceRegistry2 {
         return this;
     }
 
+    @PostConstruct
     public void start() throws ServiceException {
-        final String servicePath = buildServicePath();
 
         discovery = ServiceDiscoveryBuilder.builder(InstanceDetail.class)
                 .client(curatorClient)
@@ -87,17 +91,31 @@ public class ZKServiceRegistry2 {
         }
     }
 
+    @PreDestroy
+    public void close() {
+        if(null != discovery) {
+            try {
+                discovery.close();
+            } catch (IOException e) {
+                LOGGER.error("Failed to stop service discovery.", e);
+            }
+        }
+    }
+
     /**
      * 注册服务至注册中心
      *
      * @param host                     服务发布时所在服务端IP或者域名
      * @param port                     服务发布时所在服务端的监听地址
+     * @param namespace                服务命名空间
+     * @param version                  服务版本号
      * @param serviceName              服务标识名称
      * @param controllerRequestMapping 服务实现的Controller的对应的映射地址
      * @param methodRequestMapping     服务实现的方法对应的映射地址
      * @throws ServiceException
      */
-    public void register(String host, int port, String serviceName, String controllerRequestMapping, String methodRequestMapping) throws ServiceException {
+    public void register(String host, int port, String namespace, String version, String serviceName, String controllerRequestMapping,
+                         String methodRequestMapping) throws ServiceException {
         InstanceDetail instanceDetail = new InstanceDetail.InstanceDetailBuilder()
                 .listenAddress(host + ":" + port)
                 .context(this.context)
@@ -107,7 +125,10 @@ public class ZKServiceRegistry2 {
                 .build();
 
         ServiceInstance<InstanceDetail> serviceInstance = null;
+        serviceName = buildServiceName(namespace, version, serviceName);
         try {
+            // 将 service 注册到 {servicePath}/{namespace}/{version}/{serviceName} 下, 并重新设置 service 的标志名称为
+            // {namespace}/{version}/{serviceName}。即在查找服务时,亦需将 namespace/version/serviceName组合起来进行查找
             serviceInstance = ServiceInstance.<InstanceDetail>builder()
                     .address(host)
                     .port(port)
@@ -123,7 +144,7 @@ public class ZKServiceRegistry2 {
             return;
         }
 
-        LOGGER.info("Register service instance {} to service path {}.", serviceInstance, buildServicePath());
+        LOGGER.info("Register service instance {} to service path {}.", serviceInstance, serviceName);
         try {
             this.discovery.registerService(serviceInstance);
         } catch (Exception e) {
@@ -132,18 +153,22 @@ public class ZKServiceRegistry2 {
         }
     }
 
-    // 服务注册路径: {servicePath}/{namespace}/{version}/{serviceName}/{serviceId}
-    private String buildServicePath() {
-        StringBuilder sb = new StringBuilder(servicePath);
+    // 服务注册名称: {namespace}/{version}/{serviceName}
+    private String buildServiceName(String namespace, String version, String serviceName) {
 
-        if(StringUtils.isNotEmpty(this.namespace)) {
-            sb.append(IServiceConstant.URI_SPLIT_CHAR).append(this.namespace);
+        StringBuilder sb = new StringBuilder();
+
+        namespace = StringUtils.isEmpty(namespace) ? this.namespace : namespace;
+        if(StringUtils.isNotEmpty(namespace)) {
+            sb.append(namespace).append(IServiceConstant.URI_SPLIT_CHAR);
         }
 
-        if(StringUtils.isNotEmpty(this.version)) {
-            sb.append(IServiceConstant.URI_SPLIT_CHAR).append(this.version);
+        version = StringUtils.isEmpty(version) ? this.version : version;
+        if(StringUtils.isNotEmpty(version)) {
+            sb.append(version).append(IServiceConstant.URI_SPLIT_CHAR);
         }
 
+        sb.append(serviceName);
         return sb.toString();
     }
 }
