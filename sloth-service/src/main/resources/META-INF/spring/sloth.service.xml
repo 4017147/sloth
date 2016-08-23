@@ -9,15 +9,9 @@
     <context:component-scan base-package="com.adonia.sloth.service.rest" />
     <context:component-scan base-package="com.adonia.sloth.service.zk" />
 
-    <!-- 服务注册中心 -->
-    <bean id="serviceRegistry" name="serviceRegistry" class="com.adonia.sloth.service.zk.ZKServiceRegistry">
-        <constructor-arg name="servicePath" value="${sloth.registry.servicePath:/sloth/service}" />
-        <constructor-arg name="zkClient" ref="curatorClient" />
-    </bean>
-
     <!-- 服务查询 -->
     <bean id="serviceFinder" name="serviceFinder" class="com.adonia.sloth.service.zk.ZKServiceFinder">
-        <constructor-arg name="servicePath" value="${sloth.registry.servicePath:/sloth/service}" />
+        <constructor-arg name="servicePath" value="${sloth.service.path:/sloth/service}" />
         <constructor-arg name="zkClient" ref="curatorClient" />
     </bean>
 
@@ -28,7 +22,7 @@
     </bean>
 
     <bean id="curatorClient" class="org.apache.curator.framework.CuratorFrameworkFactory" factory-method="newClient" init-method="start">
-        <constructor-arg name="connectString" value="${sloth.registry.zkServerUri:localhost:2181}" />
+        <constructor-arg name="connectString" value="${sloth.service.zkServerUri:localhost:2181}" />
         <constructor-arg name="retryPolicy" ref="curatorRetryPolicy" />
     </bean>
 </beans>

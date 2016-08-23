@@ -106,7 +106,7 @@ public class SlothServiceTemplate {
      * @throws ServiceException
      */
     public <T> T get(Class<T> responseType) throws ServiceException {
-        InstanceDetail instance = serviceFinder.findService(this.serviceName);
+        InstanceDetail instance = serviceFinder.findService(getServiceName());
         if(null == instance) {
             throw new ServiceException("Service Not Found!", IServiceConstant.SERVICE_NOT_FOUND);
         }
@@ -119,19 +119,20 @@ public class SlothServiceTemplate {
 
         HttpEntity entry = new HttpEntity(headers);
 
-        LOGGER.info("SlothRequest method: GET, service name: {}, request url: {}.", serviceName, requestUri);
+        LOGGER.info("SlothRequest method: GET, namespace: {}, version: {}, service name: {}, request url: {}.",
+                namespace, version, serviceName, requestUri);
 
         try {
             ResponseEntity<T> response = restTemplate.exchange(requestUri, HttpMethod.GET, entry, responseType);
-            LOGGER.info("Complete SlothRequest, method: GET, service name: {}, request uri: {}.",
-                    serviceName, requestUri);
+            LOGGER.info("Complete SlothRequest, method: GET, namespace: {}, version: {}, service name: {}, request uri: {}.",
+                    namespace, version, serviceName, requestUri);
 
             if(null != response) {
                 return response.getBody();
             }
         } catch (RestClientException e) {
-            LOGGER.error("Exception happens, SlothRequest method: GET, service name: {}, request uri: {}.",
-                    serviceName, requestUri);
+            LOGGER.error("Exception happens, SlothRequest method: GET, namespace: {}, version: {}, service name: {}, request uri: {}.",
+                    namespace, version, serviceName, requestUri);
             throw new ServiceException(e);
         }
 
@@ -148,7 +149,7 @@ public class SlothServiceTemplate {
      * @throws ServiceException
      */
     public <T> T post(Class<T> responseType) throws ServiceException {
-        InstanceDetail instance = serviceFinder.findService(serviceName);
+        InstanceDetail instance = serviceFinder.findService(getServiceName());
         if(null == instance) {
             throw new ServiceException("Service Not Found!", IServiceConstant.SERVICE_NOT_FOUND);
         }
@@ -161,18 +162,19 @@ public class SlothServiceTemplate {
 
         HttpEntity entry = (null == body) ? new HttpEntity(headers) : new HttpEntity(body, headers);
 
-        LOGGER.info("SlothRequest method: POST, service name: {}, request uri: {}.", serviceName, requestUri);
+        LOGGER.info("SlothRequest method: POST, namespace: {}, version: {}, service name: {}, request uri: {}.",
+                namespace, version, serviceName, requestUri);
 
         try {
             ResponseEntity<T> response = restTemplate.exchange(requestUri, HttpMethod.POST, entry, responseType);
-            LOGGER.info("Complete SlothRequest, method: POST, service name: {}, request uri: {}.",
-                    serviceName, requestUri);
+            LOGGER.info("Complete SlothRequest, method: POST, namespace: {}, version: {}, service name: {}, request uri: {}.",
+                    namespace, version, serviceName, requestUri);
             if (null != response) {
                 return response.getBody();
             }
         } catch (RestClientException e) {
-            LOGGER.error("Exception happens, SlothRequest method: POST, service name: {}, request uri: {}.",
-                    serviceName, requestUri);
+            LOGGER.error("Exception happens, SlothRequest method: POST, namespace: {}, version: {}, service name: {}, request uri: {}.",
+                    namespace, version, serviceName, requestUri);
             throw new ServiceException(e);
         }
 
@@ -205,6 +207,21 @@ public class SlothServiceTemplate {
         }
 
         return builder.build().encode().toUriString();
+    }
+
+    // 根据 namespace、version和serviceName重新封装服务标识: {namespace}/{version}/{serviceName}
+    private String getServiceName() {
+        StringBuilder sb = new StringBuilder();
+        if(StringUtils.isNotEmpty(this.namespace)) {
+            sb.append(this.namespace).append(IServiceConstant.URI_SPLIT_CHAR);
+        }
+
+        if(StringUtils.isNotEmpty(this.version)) {
+            sb.append(this.version).append(IServiceConstant.URI_SPLIT_CHAR);
+        }
+
+        sb.append(this.serviceName);
+        return sb.toString();
     }
 
     /**

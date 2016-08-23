@@ -49,9 +49,24 @@ public class PersonServiceTest {
     }
 
     @Test
+    public void testAddPerson2() {
+        Person person = new Person("leo", 25, "NJ, JS");
+
+        try {
+            final String id = slothService.request(SlothServiceTemplate.SlothRequest.withServiceName("addPerson")
+                    .andBody(person))
+                    .version("v1")
+                    .post(String.class);
+        } catch (ServiceException e) {
+            e.printStackTrace();
+        }
+    }
+
+    @Test
     public void testGetPersons2() {
         try {
             String persons = slothService.request(SlothServiceTemplate.SlothRequest.withServiceName("getPerson"))
+                    .version("v1")
                     .get(String.class);
             System.out.println(persons);
         } catch (ServiceException e) {

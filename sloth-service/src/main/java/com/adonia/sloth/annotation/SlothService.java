@@ -33,7 +33,7 @@ public @interface SlothService {
      * 扫描被@SlothService标记的Controller,将其下除了excludes指定的方法注册为服务
      * @return
      */
-    String[] excludes();
+    String[] excludes() default {};
 
     String excludePattern() default "";
 }
