@@ -1,9 +1,5 @@
 ﻿# 概述
 
-标签（空格分隔）： Sloth
-
----
-
 ## 介绍
 
 <b>[Sloth](https://github.com/leoadonia/sloth)</b>是基于[Spring MVC](http://docs.spring.io/spring/docs/current/spring-framework-reference/html/mvc.html)框架，通过注解的方式，自动注册和发现服务的`Restful`框架。服务会被注册到[zookeeper](https://zookeeper.apache.org/)或者[etcd](https://github.com/coreos/etcd)中，并提供`Java`和`Javascript`客户端调用服务。
@@ -98,13 +94,15 @@ public class PersonService2 {
 
 `@SlothService`的属性介绍如下：
 
- | 名称        | 是否可选 | 默认值  | 作用域| 说明|
-| ------------- |:-------------:| -----:|------:|-----:|
-| namespace      | 可选 | 空字符 | Class | 命名空间，类似于模块
-| version      | 可选      |   空字符 | Class | 版本号
-| excludes | 可选     |    空数组 | Class  | 需要排除到注册范围之外的方法名列表
-| excludePattern | 可选     |    空字符 | Class | 需要排除到注册范围之外的方法名匹配
-| serviceName  |  可选  | 方法名 | Method | 服务注册到注册中心的标志
+
+| 名称          | 是否可选      | 默认值  | 作用域| 说明 |
+| ------------- |:-------------:| -------:|------:|-----:|
+| namespace     | 可选          |  空字符 | Class | 命名空间，类似于模块|
+| version       | 可选          |  空字符 | Class | 版本号|
+| excludes      | 可选          |  空数组 | Class | 需要排除到注册范围之外的方法名列表|
+| excludePattern| 可选          |  空字符 | Class | 需要排除到注册范围之外的方法名匹配|
+| serviceName   |  可选         |  方法名 | Method| 服务注册到注册中心的标志|
+
 
 由上可以看出，只有`serviceName`属性是可以作用于方法自身的，其他的都是Class级别的。另外，`Sloth`是将符合条件的方法作为服务注册的，<b>即一个方法即是一个服务</b>。而服务注册的路径为`{rootPath}/{namespace}/{version}/{serviceName}/{serviceId}`。
 
@@ -201,6 +199,8 @@ public class PersonService {
 }
 ```
 
+具体参考: [sloth-examples](https://github.com/leoadonia/sloth/blob/master/sloth-examples/src/main/java/com/adonia/sloth/service/PersonService.java)。
+
 如下，只有方法上同时有`@SlothService`和`@RequestMapping`注解的，才能被注册为服务。
 
 > N.B. 在方法上，不能使用注解中的`namespace`和`version`属性，此时，会从全局配置中读取，详细信息在配置项中会介绍。
@@ -245,6 +245,8 @@ public class PersonServiceTest {
     }
 }
 ```
+
+具体参考: [sloth-examples](https://github.com/leoadonia/sloth/blob/master/sloth-examples/src/test/java/com/adonia/sloth/service/PersonServiceTest.java)。
 
 对于`GET`请求，语法如下:
 
@@ -296,10 +298,10 @@ On the way...
 
 | 名称        | 是否可选 | 默认值  | 说明|
 | ------------- |:-------------:| -----:|------:|-----:|
-| sloth.service.namespace      | 可选 | null | 如果不配置，命名空间不起作用
-| sloth.service.version      | 可选      |   null | 如果不配，版本号不起作用
-| sloth.service.path | 可选     |    /sloth/service | 服务注册的跟路径
-| sloth.service.context | 可选     |    / | 访问服务的虚拟路径，如'/platform'
+| sloth.service.namespace      | 可选 | null | 如果不配置，命名空间不起作用|
+| sloth.service.version      | 可选      |   null | 如果不配，版本号不起作用|
+| sloth.service.path | 可选     |    /sloth/service | 服务注册的跟路径|
+| sloth.service.context | 可选     |    / | 访问服务的虚拟路径，如'/platform'|
 | sloth.service.port  |  可选  | 8080 |访问服务的端口号 |
 | sloth.service.zkServerUri | 可选 | localhost:2181 | 注册中心地址|
 
